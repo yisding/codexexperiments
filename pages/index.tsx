@@ -4,10 +4,11 @@ import { Textarea } from '../components/ui/textarea';
 
 export default function Home() {
   const [email, setEmail] = useState('');
-  const [business, setBusiness] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
+  const [items, setItems] = useState<{ text: string; business: boolean }[]>([]);
 
   const submit = async () => {
+    if (!email.trim()) return;
     setLoading(true);
     const res = await fetch('/api/tag', {
       method: 'POST',
@@ -15,7 +16,8 @@ export default function Home() {
       body: JSON.stringify({ email })
     });
     const data = await res.json();
-    setBusiness(data.business);
+    setItems(prev => [...prev, { text: email, business: data.business }]);
+    setEmail('');
     setLoading(false);
   };
 
@@ -33,10 +35,19 @@ export default function Home() {
           {loading ? 'Checking...' : 'Check'}
         </Button>
       </div>
-      {business !== null && (
-        <p className="mt-4 font-semibold">
-          {business ? 'Potential business expense' : 'Not a business expense'}
-        </p>
+      {items.length > 0 && (
+        <ul className="mt-4 space-y-4">
+          {items.map((item, idx) => (
+            <li key={idx} className="border p-2 rounded">
+              <p className="whitespace-pre-wrap">{item.text}</p>
+              <p className="font-semibold mt-1">
+                {item.business
+                  ? 'Potential business expense'
+                  : 'Not a business expense'}
+              </p>
+            </li>
+          ))}
+        </ul>
       )}
     </main>
   );
